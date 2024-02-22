@@ -1,0 +1,16 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "python",
+      "request": "launch",
+      "name": "Debug python",
+      "console": "integratedTerminal",
+      "program": "${workspaceFolder}/src/main.py",
+      "args": [
+        "${workspaceFolder}/test_files/_chat.txt",
+        "whatsapp"
+      ]
+    }
+  ]
+}
