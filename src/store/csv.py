@@ -1,15 +1,7 @@
 import csv
 
-from parse.message import Message
 
-
-def write_all(messages: Message, filename):
-    """Writes a list of messages
-
-    Args:
-        messages ([TODO:parameter]): [TODO:description]
-        filename ([TODO:parameter]): [TODO:description]
-    """
+def write_all(messages, filename = "insight.csv"):
     with open(filename, "w", newline="", encoding="utf-8") as file:
         writer = csv.writer(file)
         writer.writerow(["Date", "Time", "Author", "Content"])

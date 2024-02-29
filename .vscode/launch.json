@@ -8,8 +8,29 @@
       "console": "integratedTerminal",
       "program": "${workspaceFolder}/src/main.py",
       "args": [
-        "${workspaceFolder}/test_files/_chat.txt",
-        "whatsapp"
+        "${workspaceFolder}/_chat.txt",
+        "--config",
+        "${workspaceFolder}/config.toml"
+      ]
+    },
+    {
+      "type": "python",
+      "request": "launch",
+      "name": "Debug gui",
+      "console": "integratedTerminal",
+      "program": "${workspaceFolder}/src/main.py",
+      "args": [
+        "--gui"
+      ]
+    },
+    {
+      "type": "python",
+      "request": "launch",
+      "name": "Test",
+      "console": "integratedTerminal",
+      "module": "unittest",
+      "args": [
+        "test.test_parse.Test_Whatsapp.test_yield_entry_invalid"
       ]
     }
   ]

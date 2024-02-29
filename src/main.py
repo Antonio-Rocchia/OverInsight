@@ -1,13 +1,16 @@
 #!/usr/bin/env python3
 import argparse
-import json
 import os.path
+import sys
 
-import parse
-import store
+import config.config
+import user_interface.cli
+import user_interface.gui
+
+_program_name = os.path.basename(sys.argv[0])
 
 
-def _is_valid_file(fname):
+def _is_readable_file(fname):
     try:
         if not os.path.isfile(fname):
             raise argparse.ArgumentTypeError(f"{fname} is not a file")
@@ -18,45 +21,15 @@ def _is_valid_file(fname):
         raise argparse.ArgumentTypeError(f"The file {fname} can't be opened")
 
 
-def read_content_filter(fname):
-    with open(fname, "r") as f:
-        config = json.load(f)
-    return config["valid_content"]
-
-
-def main(parser):
-    args = parser.parse_args()
-
-    input_file = args.input_file
-    output_file = args.output_file
-    messagge_app = args.message_app
-    filer_file = args.content_filter
-
-    content_filter = read_content_filter(filer_file)
-
-    # Write all messages to CSV
-    message_parser = None
-    match messagge_app:
-        case "whatsapp":
-            message_parser = parse.whatsapp.yield_message
-
-    store.csv.write_all(
-        message_parser(input_file, content_filter),  # pyright: ignore
-        output_file,
-    )
-
-    # Count occurrences of valid content for each author
-    count = {}
-    for message in message_parser(input_file, content_filter):  # pyright: ignore
-        if message.author not in count:
-            count[message.author] = {}
-            for f in content_filter:
-                count[message.author][f] = 0
-
-        if message.content in content_filter:
-            count[message.author][message.content] += 1
-
-    print(count)
+def _is_readable_config(fname):
+    _is_readable_file(fname)
+    # Additional configuration format can be added
+    if fname.endswith(config.config.allowed_config_extensions):
+        return fname
+    else:
+        raise argparse.ArgumentTypeError(
+            f"Incorrect file extension for config file. Currently supported expections are {config.config.allowed_config_extensions}"
+        )
 
 
 if __name__ == "__main__":
@@ -64,28 +37,58 @@ if __name__ == "__main__":
         description="OverInsight: A Python tool for analyzing chat logs from popular messaging apps.",
         epilog="For more information, visit: https://github.com/Antonio-Rocchia/OverInsight",
     )
+
+    parser.add_argument("--gui", action="store_true", help="Enable GUI mode")
     parser.add_argument(
-        "input_file",
-        help="Path to the input file containing the exported chat logs.",
-        metavar="INPUT_FILE",
-        type=_is_valid_file,
+        "--config",
+        metavar="CONFIG_FILE",
+        type=_is_readable_config,
+        help="The path to the config file",
     )
     parser.add_argument(
-        "message_app",
-        help="Messaging app that generated the log. This will be used to correctly parse the chat.",
-        choices=["whatsapp"],
+        "chat_log",
+        metavar="CHAT_LOG",
+        nargs="?",
+        type=_is_readable_file,
+        help="The path to the chat log",
     )
     parser.add_argument(
-        "content_filter",
-        help="Path to JSON file containing the content filter",
-        metavar="CONTENT_FILTER",
-        type=_is_valid_file,
-    )
-    parser.add_argument(
-        "-o",
-        "--output_file",
-        help="File name for the output file. Default is 'insight.csv'.",
-        default="insight.csv",
+        "--parser",
+        metavar="MESSAGING_APP",
+        choices=config.config.allowed_parser_opts,
+        help="The name of the messaging app that generated the logs. Will override 'parser' if specified in the config file",
     )
 
-    main(parser)
+    args = parser.parse_args()
+
+    if not args.gui and not (args.config or args.chat_log or args.parser):
+        parser.print_help()
+        sys.exit()
+    elif not args.chat_log and not args.gui:
+        sys.exit(
+            f"{_program_name}: error: specify a chat_log or run in gui mode. see {_program_name} -h"
+        )
+
+    if args.config:
+        config_obj = config.config.parse(args.config)
+        if args.parser:
+            config_obj.parser = args.parser
+        else:
+            if not config_obj.parser:
+                raise argparse.ArgumentTypeError(
+                    f"Specify a valid parser for the chat log via a config file or with the --parser flag. see {_program_name} -h"
+                )
+    else:
+        if args.parser:
+            config_obj = config.config.new_config(args.parser)
+        elif not args.gui:
+            raise argparse.ArgumentTypeError(
+                f"Specify a valid parser for the chat log via a config file or with the --parser flag. see {_program_name} -h"
+            )
+        else:
+            config_obj = config.config.new_config()
+
+    if args.gui:
+        user_interface.gui.run(config_obj, args.chat_log)
+    else:
+        user_interface.cli.run(config_obj, args.chat_log)
