@@ -9,7 +9,7 @@ _program_name = os.path.basename(sys.argv[0])
 
 allowed_config_extensions = (".toml",)
 allowed_parser_opts = ("whatsapp",)
-allowed_ouput_opts = ("csv", "default")
+allowed_ouput_opts = ("csv", "stdout")
 
 
 class ConfigExeption(Exception):
@@ -126,13 +126,13 @@ class Filter():
         if not (self.start_date or self.end_date):
             return True
         if self.start_date and self.end_date:
-            if self.start_date <= date < self.end_date:
+            if self.start_date <= date <= self.end_date:
                 return True
         elif self.start_date and not self.end_date:
             if self.start_date <= date:
                 return True
         elif self.end_date and not self.start_date:
-            if date < self.end_date:
+            if date <= self.end_date:
                 return True
         return False
 
@@ -140,13 +140,13 @@ class Filter():
         if not (self.start_time and self.end_time):
             return True
         if self.start_time and self.end_time:
-            if self.start_time <= time < self.end_time:
+            if self.start_time <= time <= self.end_time:
                 return True
         elif self.start_time and not self.end_time:
             if self.start_time <= time:
                 return True
         elif self.end_time and not self.start_time:
-            if time < self.end_time:
+            if time <= self.end_time:
                 return True
         return False
 

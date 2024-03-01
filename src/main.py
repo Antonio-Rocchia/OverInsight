@@ -70,11 +70,14 @@ if __name__ == "__main__":
         )
 
     if args.config:
-        config_obj = config.config.parse(args.config)
+        try:
+            config_obj = config.config.parse(args.config)
+        except config.config.ConfigExeption as e:
+            sys.exit(str(e))
         if args.parser:
             config_obj.parser = args.parser
         else:
-            if not config_obj.parser:
+            if not config_obj.parser and not args.gui:
                 raise argparse.ArgumentTypeError(
                     f"Specify a valid parser for the chat log via a config file or with the --parser flag. see {_program_name} -h"
                 )

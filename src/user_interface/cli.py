@@ -15,7 +15,7 @@ def run(config, chat_log_fname):
     else:
         for o in config.output:
             match o:
-                case "default":
+                case "stdout":
                     _default_output(
                         parse.parse.yield_message(
                             chat_log_fname, config.parser, config.filter
