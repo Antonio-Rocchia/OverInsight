@@ -38,7 +38,6 @@ if __name__ == "__main__":
         epilog="For more information, visit: https://github.com/Antonio-Rocchia/OverInsight",
     )
 
-    parser.add_argument("--gui", action="store_true", help="Enable GUI mode")
     parser.add_argument(
         "--config",
         metavar="CONFIG_FILE",
@@ -61,37 +60,27 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    if not args.gui and not (args.config or args.chat_log or args.parser):
-        parser.print_help()
-        sys.exit()
-    elif not args.chat_log and not args.gui:
-        sys.exit(
-            f"{_program_name}: error: specify a chat_log or run in gui mode. see {_program_name} -h"
-        )
-
-    if args.config:
-        try:
-            config_obj = config.config.parse(args.config)
-        except config.config.ConfigExeption as e:
-            sys.exit(str(e))
-        if args.parser:
-            config_obj.parser = args.parser
-        else:
-            if not config_obj.parser and not args.gui:
-                raise argparse.ArgumentTypeError(
-                    f"Specify a valid parser for the chat log via a config file or with the --parser flag. see {_program_name} -h"
-                )
-    else:
-        if args.parser:
-            config_obj = config.config.new_config(args.parser)
-        elif not args.gui:
-            raise argparse.ArgumentTypeError(
-                f"Specify a valid parser for the chat log via a config file or with the --parser flag. see {_program_name} -h"
+    if args.chat_log:  # cli mode
+        if not args.parser and not args.config:
+            sys.exit(
+                f"{_program_name}: error: A parser is needed to run the program. see {_program_name} -h"
             )
-        else:
-            config_obj = config.config.new_config()
 
-    if args.gui:
-        user_interface.gui.run(config_obj, args.chat_log)
-    else:
+        if args.config:
+            try:
+                config_obj = config.config.parse(args.config)
+            except config.config.ConfigExeption as e:
+                sys.exit(str(e))
+
+            if not args.parser and not config_obj.parser:
+                sys.exit(
+                    f"{_program_name}: error: A parser is needed to run the program. see {_program_name} -h"
+                )
+            elif args.parser:
+                config_obj.parser = args.parser
+        else:
+            config_obj = config.config.new_config(args.parser)
+
         user_interface.cli.run(config_obj, args.chat_log)
+    else:
+        user_interface.gui.run(config.config.new_config())

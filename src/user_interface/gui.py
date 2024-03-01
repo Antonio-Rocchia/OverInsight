@@ -131,7 +131,7 @@ def update_scroll_region(canvas, frame):
     canvas.config(scrollregion=frame.bbox("all"))
 
 
-def run(config, chat_log_fname):
+def run(config):
     root = tk.Tk()
     root.wm_title("OverInsight 1.0.0")
     root.geometry("1000x500")
